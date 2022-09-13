@@ -112,4 +112,46 @@ public class PremierLeagueDAO {
 		}
 	}
 	
+	public void getPuntiSquadra(Team team) {
+		String sql = "SELECT m.TeamHomeID, m.TeamAwayID, m.ResultOfTeamHome as r "
+				+ "FROM matches m "
+				+ "WHERE m.TeamHomeID=? OR m.TeamAwayID=?";
+		
+		Connection conn = DBConnect.getConnection();
+		int punti=0;
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, team.getTeamID());
+			st.setInt(2, team.getTeamID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				int result= res.getInt("r");
+				if(team.getTeamID() == res.getInt("m.TeamHomeID")) {
+					//la squadra giocava in casa
+					if(result==1) {
+						punti+=3;
+					}else if(result == 0) {
+						punti+=1;
+					}					
+				}else if(team.getTeamID() == res.getInt("m.TeamAwayID")) {
+					//la squadra NON giocava in casa
+					if(result==(-1)) {
+						punti+=3;
+					}else if(result == 0) {
+						punti+=1;
+					}
+				}
+			}
+			conn.close();
+			team.setPuntiClassifica(punti);
+			
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Errore SQL");
+		}
+		
+	}
+	
 }
